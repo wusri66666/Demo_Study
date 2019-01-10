@@ -1,9 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render
-
-# Create your views here.
 from django.views import View
-
 from courses.models import Course
 from operation.models import UserFavorite
 from organization.forms import UserAskForm
@@ -12,36 +9,40 @@ from pure_pagination import Paginator, EmptyPage, PageNotAnInteger
 
 
 class OrgView(View):
+    '''
+    课程机构显示
+    '''
     def get(self,request):
+        #查询数据
         citys = CityDict.objects.all()
         objs = CourseOrg.objects.all()
         hot_orgs = objs.order_by('click_nums')[:3]
+        #获得参数
         city_id = request.GET.get('city','')
         category = request.GET.get('ct','')
+        #根据城市筛选数据
         if city_id:
             objs = objs.filter(city_id=int(city_id))
-
+        #根据类别筛选数据
         if category:
             objs = objs.filter(category=category)
-
         sort = request.GET.get('sort','')
+        #排序
         if sort:
             if sort == 'students':
                 objs = objs.order_by('-students')
             elif sort == 'courses':
                 objs = objs.order_by('-course_nums')
-
+        #获得数量
         obj_num = objs.count()
-
+        #分页
         try:
+            #page参数自动加上
             page = request.GET.get('page', 1)
         except PageNotAnInteger:
             page = 1
-
         p = Paginator(objs,3, request=request)
-
         objs = p.page(page)
-
         return render(request,'org_list.html',{'objs':objs,
                                                'citys':citys,
                                                'obj_num':obj_num,
@@ -59,6 +60,7 @@ class AddUserAskView(View):
     def post(self, request):
         userask_form = UserAskForm(request.POST)
         if userask_form.is_valid():
+            # commit=True将数据提交到数据库
             user_ask = userask_form.save(commit=True)
             return HttpResponse('{"status":"success"}', content_type='application/json')
         else:
@@ -66,6 +68,9 @@ class AddUserAskView(View):
 
 
 class OrgHomeView(View):
+    '''
+    授课机构主页
+    '''
     def get(self,request,org_id):
         current_page = 'home'
         course_org = CourseOrg.objects.get(id=int(org_id))
@@ -85,6 +90,9 @@ class OrgHomeView(View):
 
 
 class CourseView(View):
+    '''
+    机构课程首页
+    '''
     def get(self,request,org_id):
         current_page = 'course'
         course_org = CourseOrg.objects.get(id=int(org_id))
@@ -102,6 +110,9 @@ class CourseView(View):
 
 
 class DescView(View):
+    '''
+    机构介绍页
+    '''
     def get(self,request,org_id):
         current_page = 'desc'
         course_org = CourseOrg.objects.get(id=int(org_id))
@@ -117,6 +128,9 @@ class DescView(View):
 
 
 class OrgTeacherView(View):
+    '''
+    机构讲师
+    '''
     def get(self,request,org_id):
         current_page = 'teacher'
         course_org = CourseOrg.objects.get(id=int(org_id))
@@ -134,6 +148,9 @@ class OrgTeacherView(View):
 
 
 class AddFavView(View):
+    '''
+    添加收藏
+    '''
     def post(self,request):
         fav_id = request.POST.get('fav_id',0)
         fav_type = request.POST.get('fav_type',0)

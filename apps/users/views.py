@@ -7,8 +7,6 @@ from django.views import View
 from users.forms import *
 from users.models import *
 from django.contrib.auth.hashers import make_password
-
-
 from users.task import send_verify_mail
 from users.utils.get_unique import get_unique_str
 
@@ -106,7 +104,6 @@ class ForgetPwdView(View):
 
 class ResetView(View):
     def get(self,request,active_code):
-        print(123)
         obj = EmailVerifyRecord.objects.filter(code=active_code).first()
         if obj:
             email = obj.email
